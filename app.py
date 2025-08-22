@@ -57,7 +57,7 @@ See ? No need to load a `model.joblib` file in this app, we do not even need to 
 🤔 How could we call our API ? Off course... The `requests` package 💡
 '''
 
-url = 'http://localhost:8501/'
+url = 'https://taxifare.lewagon.ai/predict'
 
 if url == 'https://taxifare.lewagon.ai/predict':
 
@@ -73,3 +73,42 @@ if url == 'https://taxifare.lewagon.ai/predict':
 
 ## Finally, we can display the prediction to the user
 '''
+
+# 2. Build the parameters dictionary for the API
+params = {
+    'pickup_datetime': pickup_datetime,
+    'pickup_longitude': pickup_longitude,
+    'pickup_latitude': pickup_latitude,
+    'dropoff_longitude': dropoff_longitude,
+    'dropoff_latitude': dropoff_latitude,
+    'passenger_count': passenger_count
+}
+
+# Add a button to trigger the prediction
+if st.button('Get Fare Prediction'):
+    # 3. Call the API using requests
+    st.info('Calling API...')
+    
+    try:
+        response = requests.get(url, params=params)
+        
+        if response.status_code == 200:
+            # 4. Retrieve the prediction from the JSON response
+            prediction = response.json()
+            
+            # Display the prediction to the user
+            st.success(f"💵 Estimated Fare: ${prediction.get('fare', 'N/A'):.2f}")
+            
+            # Display the parameters used (optional)
+            with st.expander("See request details"):
+                st.write("Parameters sent to API:")
+                st.json(params)
+                st.write("API Response:")
+                st.json(prediction)
+        else:
+            st.error(f"API request failed with status code: {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error connecting to API: {str(e)}")
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
